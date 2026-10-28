@@ -324,10 +324,10 @@
       case 'save-lock': {
         const inp = document.getElementById('lockCodeInput');
         const v = (inp.value || '').trim();
-        TL.DB.settings.lockCode = v;
+        TL.DB.settings.lockCodeHash = v ? TL.hashLock(v) : '';
         TL.save(true);
         TL.renderSettings();
-        TL.toast(v ? '口令已设置' : '口令已取消');
+        TL.toast(v ? '口令已设置，下次打开生效' : '口令已取消');
         break;
       }
 
@@ -389,9 +389,9 @@
 
   /* ---------------- 口令锁 ---------------- */
   function bootLock() {
-    const code = (TL.DB.settings.lockCode || '').trim();
+    const want = (TL.DB.settings.lockCodeHash || '').trim();
     const lock = document.getElementById('lockScreen');
-    if (!code || sessionStorage.getItem('tl-unlocked') === '1') {
+    if (!want || sessionStorage.getItem('tl-unlocked') === '1') {
       lock.hidden = true;
       return true;
     }
@@ -399,7 +399,7 @@
     const input = document.getElementById('lockInput');
     const err = document.getElementById('lockErr');
     const submit = function () {
-      if (input.value === code) {
+      if (TL.hashLock(input.value) === want) {
         sessionStorage.setItem('tl-unlocked', '1');
         lock.hidden = true;
         err.textContent = '';

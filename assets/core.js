@@ -121,6 +121,14 @@
 
   TL.monthKey = function (s) { return String(s || '').slice(0, 7); };
 
+  /* 口令校验值（单向，存数据文件里也看不出原口令） */
+  TL.hashLock = function (s) {
+    let h = 5381;
+    s = String(s == null ? '' : s);
+    for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
+    return 'x' + h.toString(36);
+  };
+
   TL.nowStamp = function () {
     const d = new Date();
     return TL.dateStr(d) + ' ' + TL.pad(d.getHours()) + ':' + TL.pad(d.getMinutes());
@@ -140,7 +148,8 @@
       goodWinRate: 50,
       goodProfitFactor: 2,
       autoUpload: false,
-      lockCode: '',
+      /* 口令只存校验值，不存明文；默认 4682 */
+      lockCodeHash: 'xyjdq3d',
       owner: 'liangguoqi-0217',
       repo: 'liang-trade-log-data',
       branch: 'main',
@@ -209,6 +218,10 @@
     if (!obj || typeof obj !== 'object') return base;
     obj.version = TL.VERSION;
     obj.settings = Object.assign({}, base.settings, obj.settings || {});
+    if (obj.settings.lockCode && !obj.settings.lockCodeHash) {
+      obj.settings.lockCodeHash = TL.hashLock(obj.settings.lockCode);
+    }
+    delete obj.settings.lockCode;
     obj.days = obj.days || {};
     obj.weeks = obj.weeks || {};
     obj.months = obj.months || {};

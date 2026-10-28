@@ -830,7 +830,7 @@
     /* 口令 */
     h += '<div class="card"><div class="card-hd"><h3>进入口令</h3><span class="tip">防止别人打开你电脑看到记录（本地校验，非加密）</span></div>' +
       '<div style="display:flex;gap:8px;max-width:420px">' +
-      '<input type="text" id="lockCodeInput" placeholder="' + (st.lockCode ? '已设置，留空并点保存可取消' : '设一个口令，如 4 位数字') + '">' +
+      '<input type="text" id="lockCodeInput" placeholder="' + (st.lockCodeHash ? '已设置，留空并点保存可取消' : '设一个口令，如 4 位数字') + '">' +
       '<button class="btn" data-act="save-lock">保存</button></div></div>';
 
     /* 危险 */
