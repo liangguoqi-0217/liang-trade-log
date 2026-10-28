@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1E3A5F">
+<title>交易执行记录本</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231E3A5F'/%3E%3Ctext x='16' y='22' font-family='Arial' font-size='13' font-weight='bold' fill='white' text-anchor='middle'%3ETL%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<!-- 口令锁 -->
+<div class="lock" id="lockScreen" hidden>
+  <div class="lock-box">
+    <div class="lock-title">交易执行记录本</div>
+    <div class="lock-sub">请输入进入口令</div>
+    <input type="password" id="lockInput" autocomplete="off" placeholder="口令">
+    <button class="btn primary block" id="lockBtn">进入</button>
+    <div class="lock-err" id="lockErr"></div>
+  </div>
+</div>
+
+<div class="app" id="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">TL</div>
+      <div class="brand-txt">
+        <div class="title">交易执行记录本</div>
+        <div class="sub">当晚筛品种写条件 · 次日只等触发 · 盘后对照记一笔</div>
+      </div>
+    </div>
+
+    <nav class="tabs" id="mainTabs">
+      <button data-tab="today" class="active">今日</button>
+      <button data-tab="rotation">板块轮动</button>
+      <button data-tab="stats">统计</button>
+      <button data-tab="weekly">周度</button>
+      <button data-tab="monthly">月度</button>
+      <button data-tab="settings">设置</button>
+    </nav>
+
+    <div class="syncbar">
+      <span class="dot" id="dirtyDot" title="有未上传的更改"></span>
+      <span class="sync-text" id="syncText">本地模式</span>
+      <button class="btn ghost sm" id="btnQuickPull">拉取</button>
+      <button class="btn primary sm" id="btnQuickPush">上传</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="view active" id="view-today">
+      <div class="datebar">
+        <button class="btn icon" id="btnPrevDay" title="前一天">‹</button>
+        <input type="date" id="datePicker">
+        <button class="btn icon" id="btnNextDay" title="后一天">›</button>
+        <button class="btn ghost sm" id="btnToday">今天</button>
+        <div class="spacer"></div>
+        <div class="dayhint" id="dayHint"></div>
+        <button class="btn ghost sm" id="btnPrint">打印一页纸</button>
+      </div>
+      <div class="subtabs" id="subTabs">
+        <button data-sub="evening" class="active">一 · 当晚清单</button>
+        <button data-sub="intraday">二 · 次日盘中</button>
+        <button data-sub="review">三 · 盘后复盘</button>
+        <button data-sub="trades">成交记录</button>
+      </div>
+      <div id="todayBody" class="body"></div>
+    </section>
+
+    <section class="view" id="view-rotation"><div id="rotationBody" class="body"></div></section>
+    <section class="view" id="view-stats"><div id="statsBody" class="body"></div></section>
+    <section class="view" id="view-weekly"><div id="weeklyBody" class="body"></div></section>
+    <section class="view" id="view-monthly"><div id="monthlyBody" class="body"></div></section>
+    <section class="view" id="view-settings"><div id="settingsBody" class="body"></div></section>
+  </main>
+
+  <footer class="foot">
+    <span>数据存于本机浏览器 + 你的 GitHub 私有仓库</span>
+    <span id="footMeta"></span>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">提示</div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="print-area" id="printArea"></div>
+
+<script src="assets/core.js"></script>
+<script src="assets/render.js"></script>
+<script src="assets/sync.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

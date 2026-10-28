@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "createdAt": "",
+  "updatedAt": "",
+  "settings": {
+    "totalCapital": 400000,
+    "maxSingleLoss": 10000,
+    "maxMarginPct": 60,
+    "maxPositions": 2,
+    "watchlistSize": 2,
+    "watchlistMax": 3,
+    "noNewAfter": "14:30",
+    "pauseAfterStreak": 3,
+    "goodWinRate": 50,
+    "goodProfitFactor": 2,
+    "autoUpload": false,
+    "lockCode": "",
+    "owner": "liangguoqi-0217",
+    "repo": "liang-trade-log-data",
+    "branch": "main",
+    "path": "journal.json"
+  },
+  "days": {},
+  "weeks": {},
+  "months": {}
+}
