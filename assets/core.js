@@ -318,7 +318,10 @@
 
   TL.ensureDay = function (date) { return TL.day(date, true); };
 
-  TL.dayCount = function () { return Object.keys(TL.DB.days).length; };
+  /* 只统计有实质内容的天数，避免自动创建的空白记录被计入 */
+  TL.dayCount = function () {
+    return Object.keys(TL.DB.days).filter(function (k) { return !TL.isEmptyDay(TL.DB.days[k]); }).length;
+  };
 
   /* ---------------- 判定逻辑 ---------------- */
   /* 三条件：日线多头排列 + 偏离均线<2% + 15分钟粘合 */
