@@ -265,6 +265,19 @@
         TL.renderWeekly(); break;
 
       /* ---- 同步 ---- */
+      /* ---- 主题 ---- */
+      case 'toggle-theme':
+        TL.toggleTheme();
+        syncThemeBtn();
+        if (TL.UI.tab === 'settings') TL.renderSettings();
+        break;
+
+      case 'set-theme':
+        TL.setTheme(d.val);
+        syncThemeBtn();
+        TL.renderSettings();
+        break;
+
       case 'push': TL.push(false); break;
       case 'pull': TL.pull(false); break;
       case 'test-conn': TL.testConn(); break;
@@ -347,6 +360,12 @@
     }
   }
 
+  /* ---------------- 主题按钮 ---------------- */
+  function syncThemeBtn() {
+    const btn = document.getElementById('btnTheme');
+    if (btn) btn.textContent = TL.getTheme() === 'dark' ? '☀ 白天' : '☾ 夜间';
+  }
+
   /* ---------------- 日期栏 ---------------- */
   function bindDatebar() {
     document.getElementById('btnPrevDay').onclick = function () {
@@ -422,6 +441,7 @@
     started = true;
     bindDatebar();
     bindKeys();
+    syncThemeBtn();
     TL.render();
     TL.updateSyncUI();
   }

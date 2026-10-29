@@ -16,6 +16,15 @@
       }).join('') + '</div>';
   }
 
+  /* 建议记录时间提示条 */
+  function timeNote(kind) {
+    const h = TL.timeHint(kind);
+    if (!h || !h.text) return '';
+    const badge = h.level === 'now' ? '现在' : (h.level === 'soon' ? '建议' : '提示');
+    return '<div class="note' + (h.level === 'off' ? ' muted' : '') + '">' +
+      '<span class="when">' + badge + '</span><span>' + H(h.text) + '</span></div>';
+  }
+
   function inp(path, val, placeholder, cls, type) {
     return '<input type="' + (type || 'text') + '" data-path="' + path + '" value="' + H(val) + '" placeholder="' + H(placeholder || '') + '"' + (cls ? ' class="' + cls + '"' : '') + '>';
   }
@@ -133,7 +142,7 @@
     const st = TL.DB.settings;
 
     /* 1 指数状态 */
-    let h = '<div class="card"><div class="card-hd"><h3><span class="idx">1</span>看文华指数状态</h3>' +
+    let h = timeNote('evening') + '<div class="card"><div class="card-hd"><h3><span class="idx">1</span>看文华指数状态</h3>' +
       '<span class="tip">MA20&gt;MA40&gt;MA60 = 多头 · MA60&gt;MA40&gt;MA20 = 空头 · 其余 = 震荡</span>' +
       '<span class="right">' + (e.done.c1 ? '<span class="tag ok">已完成</span>' : '') + '</span></div>' +
       '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">' +
@@ -273,7 +282,7 @@
     const times = ['10:00', '13:30', '14:15'];
     const st = TL.DB.settings;
 
-    let h = '<div class="note"><b>盘中铁律：</b>信号出现 → 按昨晚写好的止损和仓位执行，不临时改；信号没出现 → 不动；日报和你的系统冲突 → 以你的系统为准，或不做。' +
+    let h = timeNote('intraday') + '<div class="note"><b>盘中铁律：</b>信号出现 → 按昨晚写好的止损和仓位执行，不临时改；信号没出现 → 不动；日报和你的系统冲突 → 以你的系统为准，或不做。' +
       '<br>每天只开图表三次，每次 5 分钟，' + st.noNewAfter + ' 后不开新仓。</div>';
 
     if (!e.watch.length) {
@@ -328,7 +337,7 @@
     const r = day.review;
     const e = day.evening;
 
-    let h = '<div class="note"><b>复盘只做三件事：</b>对答案（老师说的 vs 实际走的）、看自己（信号抓没抓到）、记一笔（板块轮动表新增一行）。</div>';
+    let h = timeNote('review') + '<div class="note"><b>复盘只做三件事：</b>对答案（老师说的 vs 实际走的）、看自己（信号抓没抓到）、记一笔（板块轮动表新增一行）。</div>';
 
     h += '<div class="card"><div class="card-hd"><h3><span class="idx">1</span>对照老师昨日判断</h3><span class="tip">昨日最强品种：' + H(e.theme.strongest || '未记录') + '</span></div>' +
       '<div class="grid c2">' +
@@ -388,7 +397,7 @@
     const trades = day.trades || [];
     const stats = TL.computeStats(trades);
 
-    let h = '<div class="kpis" id="tradeKpis" style="grid-template-columns:repeat(4,minmax(0,1fr))">' +
+    let h = timeNote('trades') + '<div class="kpis" id="tradeKpis" style="grid-template-columns:repeat(4,minmax(0,1fr))">' +
       tradeKpisHtml(trades) +
       '</div>';
 
@@ -624,7 +633,7 @@
 
     const rec = TL.DB.weeks[wk] || (TL.DB.weeks[wk] = {});
 
-    let h = '<div class="card"><div class="card-hd"><h3>周度复盘 · ' + H(wk) + '</h3>' +
+    let h = timeNote('weekly') + '<div class="card"><div class="card-hd"><h3>周度复盘 · ' + H(wk) + '</h3>' +
       '<span class="tip">' + from + ' ~ ' + to + ' · 周日 30 分钟</span>' +
       '<span class="right"><button class="btn sm ghost" data-act="week-prev">上一周</button><button class="btn sm ghost" data-act="week-next">下一周</button></span></div>' +
       '<div class="kpis" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:0">' +
@@ -698,7 +707,7 @@
     const pause = s.streakLoss >= st.pauseAfterStreak;
     const keep = s.winRate > st.goodWinRate && isFinite(s.plRatio) && s.plRatio > st.goodProfitFactor;
 
-    let h = '<div class="card"><div class="card-hd"><h3>月度复盘 · ' + H(mk) + '</h3>' +
+    let h = timeNote('monthly') + '<div class="card"><div class="card-hd"><h3>月度复盘 · ' + H(mk) + '</h3>' +
       '<span class="tip">月底 1 小时</span>' +
       '<span class="right"><span class="tag accent">' + s.count + ' 笔</span></span></div>' +
       '<div class="kpis" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:0">' +
@@ -776,6 +785,15 @@
       '<div class="field"><label>连亏暂停阈值（笔）</label><input type="number" step="1" data-path="settings.pauseAfterStreak" value="' + H(st.pauseAfterStreak) + '"></div>' +
       '<div class="field"><label>维持规则：胜率 &gt;（%）</label><input type="number" step="5" data-path="settings.goodWinRate" value="' + H(st.goodWinRate) + '"></div>' +
       '<div class="field"><label>维持规则：盈亏比 &gt;</label><input type="number" step="0.5" data-path="settings.goodProfitFactor" value="' + H(st.goodProfitFactor) + '"></div>' +
+      '</div></div>';
+
+    /* 外观 */
+    const theme = TL.getTheme();
+    h += '<div class="card"><div class="card-hd"><h3>外观</h3>' +
+      '<span class="tip">默认夜间模式 · 主题只存在本机，不同步到 GitHub</span></div>' +
+      '<div class="chips">' +
+      '<span class="chip ' + (theme === 'dark' ? 'on' : '') + '" data-act="set-theme" data-val="dark">夜间模式</span>' +
+      '<span class="chip ' + (theme === 'light' ? 'on' : '') + '" data-act="set-theme" data-val="light">白天模式</span>' +
       '</div></div>';
 
     /* 同步 */

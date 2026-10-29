@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1E3A5F">
 <title>交易执行记录本</title>
+<script>
+/* 先定主题再渲染，避免夜间模式闪白 */
+(function(){try{document.documentElement.setAttribute('data-theme', localStorage.getItem('liang-trade-log:theme')||'dark');}catch(e){}})();
+</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231E3A5F'/%3E%3Ctext x='16' y='22' font-family='Arial' font-size='13' font-weight='bold' fill='white' text-anchor='middle'%3ETL%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/style.css">
 </head>
@@ -44,6 +48,7 @@
     <div class="syncbar">
       <span class="dot" id="dirtyDot" title="有未上传的更改"></span>
       <span class="sync-text" id="syncText">本地模式</span>
+      <button class="btn ghost sm" id="btnTheme" data-act="toggle-theme" title="切换白天 / 夜间模式">☀ 白天</button>
       <button class="btn ghost sm" id="btnQuickPull">拉取</button>
       <button class="btn primary sm" id="btnQuickPush">上传</button>
     </div>

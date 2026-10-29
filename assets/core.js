@@ -121,6 +121,78 @@
 
   TL.monthKey = function (s) { return String(s || '').slice(0, 7); };
 
+  /* ---------------- 主题（白天 / 夜间，默认夜间） ---------------- */
+  TL.THEME_KEY = 'liang-trade-log:theme';
+
+  TL.getTheme = function () {
+    try { return localStorage.getItem(TL.THEME_KEY) || 'dark'; } catch (e) { return 'dark'; }
+  };
+
+  TL.setTheme = function (t) {
+    try { localStorage.setItem(TL.THEME_KEY, t); } catch (e) { /* 隐私模式忽略 */ }
+    document.documentElement.setAttribute('data-theme', t);
+  };
+
+  TL.toggleTheme = function () {
+    const next = TL.getTheme() === 'dark' ? 'light' : 'dark';
+    TL.setTheme(next);
+    return next;
+  };
+
+  /* ---------------- 建议记录时间 ---------------- */
+  TL.timeHint = function (kind) {
+    const now = new Date();
+    const m = now.getHours() * 60 + now.getMinutes();
+    const wd = now.getDay();
+    const isWeekend = (wd === 0 || wd === 6);
+    const wname = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][wd];
+
+    if (kind === 'evening') {
+      if (isWeekend) return { level: 'off', text: '周末休市。当晚清单在交易日 15:30–16:00 做；提前看盘面可以，但条件单别提前定死。' };
+      if (m >= 930 && m <= 965) return { level: 'now', text: '现在就是当晚清单时间（15:30–16:00）。做完这一页，明天只等触发。' };
+      if (m < 930) return { level: 'soon', text: '15:30–16:00 填（收盘后 15 分钟）。现在可以先抄主线，条件单等收盘后再定。' };
+      return { level: 'off', text: '建议时间是 15:30–16:00，现在已经过了。补记可以，但别打乱明天的节奏。' };
+    }
+
+    if (kind === 'intraday') {
+      if (isWeekend) return { level: 'off', text: '周末休市，不用打卡。' };
+      const pts = [[600, '10:00'], [810, '13:30'], [855, '14:15']];
+      for (const p of pts) {
+        if (Math.abs(m - p[0]) <= 8) return { level: 'now', text: '现在是 ' + p[1] + ' 检查点。打开观察清单看一眼：有信号就按昨晚写的执行，没有就关掉。' };
+      }
+      for (const p of pts) {
+        if (m < p[0] - 8) return { level: 'soon', text: '盘中只看三次：10:00 / 13:30 / 14:15，每次 5 分钟。下一个检查点 ' + p[1] + '。' };
+      }
+      return { level: 'off', text: '三个检查点（10:00 / 13:30 / 14:15）都过了。' + (TL.DB.settings.noNewAfter || '14:30') + ' 后不开新仓，剩下的交给明天。' };
+    }
+
+    if (kind === 'review') {
+      if (isWeekend) return { level: 'off', text: '周末休市。复盘在交易日 16:00–16:15 做。' };
+      if (m >= 955 && m <= 990) return { level: 'now', text: '现在就是复盘时间（16:00–16:15）。对答案、记轮动、写 1–2 条笔记。' };
+      if (m < 955) return { level: 'soon', text: '16:00–16:15 复盘（收盘后 15 分钟），当天记忆最准，别拖到第二天。' };
+      return { level: 'off', text: '建议 16:00–16:15 复盘，现在已经过了。第二天补记，判断准确度会打折扣。' };
+    }
+
+    if (kind === 'trades') {
+      if (isWeekend) return { level: 'off', text: '周末无成交。有平仓就当天记一笔，别攒着。' };
+      if (m >= 955) return { level: 'soon', text: '有平仓就现在记一笔（收盘后 16:15 前）。盈亏填准，胜率和盈亏比才算得准。' };
+      return { level: 'soon', text: '盘中平仓随时记，最晚收盘后 16:15 前补齐。' };
+    }
+
+    if (kind === 'weekly') {
+      if (wd === 0) return { level: 'now', text: '今天是周日，花 30 分钟做周度复盘：统计、纪律、品种池、仓位。' };
+      return { level: 'off', text: '周度复盘建议周日做（今天是 ' + wname + '）。平时可以先看数字，定性判断留到周日。' };
+    }
+
+    if (kind === 'monthly') {
+      const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      if (now.getDate() >= last - 2) return { level: 'now', text: '现在是月底（本月最后几天），花 1 小时做月度复盘：盈亏、回撤、规则调整、资金检查。' };
+      return { level: 'off', text: '月度复盘建议每月最后几天做（今天是 ' + (now.getMonth() + 1) + ' 月 ' + now.getDate() + ' 日）。' };
+    }
+
+    return { level: 'off', text: '' };
+  };
+
   /* 口令校验值（单向，存数据文件里也看不出原口令） */
   TL.hashLock = function (s) {
     let h = 5381;
