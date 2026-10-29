@@ -38,8 +38,7 @@
 
     <nav class="tabs" id="mainTabs">
       <button data-tab="today" class="active">今日</button>
-      <button data-tab="rotation">板块轮动</button>
-      <button data-tab="stats">统计</button>
+      <button data-tab="stats">回顾</button>
       <button data-tab="weekly">周度</button>
       <button data-tab="monthly">月度</button>
       <button data-tab="settings">设置</button>
@@ -49,7 +48,6 @@
       <span class="dot" id="dirtyDot" title="有未上传的更改"></span>
       <span class="sync-text" id="syncText">本地模式</span>
       <button class="btn ghost sm" id="btnTheme" data-act="toggle-theme" title="切换白天 / 夜间模式">☀ 白天</button>
-      <button class="btn ghost sm" id="btnQuickPull">拉取</button>
       <button class="btn primary sm" id="btnQuickPush">上传</button>
     </div>
   </header>
@@ -74,7 +72,6 @@
       <div id="todayBody" class="body"></div>
     </section>
 
-    <section class="view" id="view-rotation"><div id="rotationBody" class="body"></div></section>
     <section class="view" id="view-stats"><div id="statsBody" class="body"></div></section>
     <section class="view" id="view-weekly"><div id="weeklyBody" class="body"></div></section>
     <section class="view" id="view-monthly"><div id="monthlyBody" class="body"></div></section>

@@ -25,6 +25,11 @@
       '<span class="when">' + badge + '</span><span>' + H(h.text) + '</span></div>';
   }
 
+  /* 完成度标签：按内容自动判定，不用手打勾 */
+  function doneTag(e, k) {
+    return TL.eveningDone(e)[k] ? '<span class="tag ok">已完成</span>' : '';
+  }
+
   function inp(path, val, placeholder, cls, type) {
     return '<input type="' + (type || 'text') + '" data-path="' + path + '" value="' + H(val) + '" placeholder="' + H(placeholder || '') + '"' + (cls ? ' class="' + cls + '"' : '') + '>';
   }
@@ -114,7 +119,7 @@
     let h = '<div class="card"><div class="card-hd"><h3><span class="idx">4</span>确定次日观察清单</h3>' +
       '<span class="tip">只选 ' + target + '–' + limit + ' 个（小资金 ' + target + ' 个）· 优先主线板块 + 日线缓坡 30–60 度 + 靠近均线</span>' +
       '<span class="right"><span class="tag ' + (e.watch.length > limit ? 'warn' : 'accent') + '" id="watchCount">已选 ' + e.watch.length + ' / ' + limit + '</span>' +
-      (e.done.c4 ? '<span class="tag ok">已完成</span>' : '') + '</span></div>';
+      doneTag(e, 'c4') + '</span></div>';
 
     if (!keepList.length) {
       h += '<div class="empty">没有「保留」的品种。先在上一步补齐三条标准，或今天不做。</div>';
@@ -130,7 +135,6 @@
     if (e.watch.length > limit) {
       h += '<div class="note warn" style="margin-top:10px;margin-bottom:0">超出上限：当晚只留 ' + limit + ' 个，多选等于没有重点。</div>';
     }
-    h += '<div style="margin-top:10px"><label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><input type="checkbox" data-done="c4"' + (e.done.c4 ? ' checked' : '') + '>已确定清单</label></div></div>';
     return h;
   }
   TL.watchCardHtml = watchCardHtml;
@@ -144,33 +148,30 @@
     /* 1 指数状态 */
     let h = timeNote('evening') + '<div class="card"><div class="card-hd"><h3><span class="idx">1</span>看文华指数状态</h3>' +
       '<span class="tip">MA20&gt;MA40&gt;MA60 = 多头 · MA60&gt;MA40&gt;MA20 = 空头 · 其余 = 震荡</span>' +
-      '<span class="right">' + (e.done.c1 ? '<span class="tag ok">已完成</span>' : '') + '</span></div>' +
+      '<span class="right">' + doneTag(e, 'c1') + '</span></div>' +
       '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">' +
       seg('evening.indexTrend', [{ v: '多头', t: '多头' }, { v: '空头', t: '空头' }, { v: '震荡', t: '震荡' }], e.indexTrend) +
       '<div style="flex:1;min-width:200px;max-width:380px">' + inp('evening.indexNote', e.indexNote, '备注：如「20日线上方，40/60走平」') + '</div>' +
-      '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><input type="checkbox" data-done="c1"' + (e.done.c1 ? ' checked' : '') + '>已核对</label>' +
       '</div></div>';
 
     /* 2 日报主线 */
     const t = e.theme;
     h += '<div class="card"><div class="card-hd"><h3><span class="idx">2</span>抄日报主线</h3>' +
       '<span class="tip">只抄名字，不抄理由</span>' +
-      '<span class="right">' + (e.done.c2 ? '<span class="tag ok">已完成</span>' : '') + '</span></div>' +
+      '<span class="right">' + doneTag(e, 'c2') + '</span></div>' +
       '<div class="grid c4">' +
       '<div class="field"><label>主线板块</label>' + inp('evening.theme.mainSector', t.mainSector, '如 黑色系') + '</div>' +
       '<div class="field"><label>最强品种</label>' + inp('evening.theme.strongest', t.strongest, '如 铁矿') + '</div>' +
       '<div class="field"><label>最弱品种</label>' + inp('evening.theme.weakest', t.weakest, '如 玻璃') + '</div>' +
       '<div class="field"><label>由弱转强</label>' + inp('evening.theme.turning', t.turning, '如 纯碱') + '</div>' +
       '</div>' +
-      '<div style="margin-top:10px;display:flex;align-items:center;gap:10px">' +
-      '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><input type="checkbox" data-done="c2"' + (e.done.c2 ? ' checked' : '') + '>已抄录</label>' +
       '</div></div>';
 
     /* 3 品种筛选 */
     h += '<div class="card"><div class="card-hd"><h3><span class="idx">3</span>用自己系统筛品种</h3>' +
       '<span class="tip">① 日线多头排列 ② 偏离 5/20 日均线 &lt; 2% ③ 15 分钟粘合或即将粘合</span>' +
       '<span class="right"><button class="btn sm" data-act="add-cand">+ 添加品种</button>' +
-      (e.done.c3 ? '<span class="tag ok">已完成</span>' : '') + '</span></div>';
+      doneTag(e, 'c3') + '</span></div>';
 
     if (!e.candidates.length) {
       h += '<div class="empty">还没有品种。先点右上角「+ 添加品种」，把老师提到的品种逐个过一遍三条标准。</div>';
@@ -204,7 +205,7 @@
     h += '<div class="card"><div class="card-hd"><h3><span class="idx">5</span>写「如果……就……」条件单</h3>' +
       '<span class="tip">格式：若 15 分钟回踩 60 均线 + 5 线粘合向上突破 → 做多，止损粘合区下方 0.5ATR，开 X 手</span>' +
       '<span class="right"><button class="btn sm" data-act="add-order">+ 添加条件单</button>' +
-      (e.done.c5 ? '<span class="tag ok">已完成</span>' : '') + '</span></div>';
+      doneTag(e, 'c5') + '</span></div>';
 
     if (!e.orders.length) {
       h += '<div class="empty">还没有条件单。每个观察品种写一条：什么信号做多/做空、止损在哪、开几手。</div>';
@@ -232,13 +233,13 @@
         h += '<div class="note danger" style="margin-top:10px;margin-bottom:0">有 ' + overRisk.length + ' 条条件单的计划风险超过单笔上限 ' + TL.fmt(st.maxSingleLoss) + ' 元，下单前先减手数。</div>';
       }
     }
-    h += '<div style="margin-top:10px"><label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><input type="checkbox" data-done="c5"' + (e.done.c5 ? ' checked' : '') + '>已写完条件单</label></div></div>';
+    h += '</div></div>';
 
     /* 6 持仓检查 */
     h += '<div class="card"><div class="card-hd"><h3><span class="idx">6</span>检查持仓</h3>' +
       '<span class="tip">收盘价跌破 20 均线 → 次日平仓；浮盈 ≥ 2R → 止损上移到成本价</span>' +
       '<span class="right"><button class="btn sm" data-act="add-pos">+ 添加持仓</button>' +
-      (e.done.c6 ? '<span class="tag ok">已完成</span>' : '') + '</span></div>';
+      doneTag(e, 'c6') + '</span></div>';
 
     if (!e.positions.length) {
       h += '<div class="empty">当前无持仓（空仓也是一种状态，不用填）。</div>';
@@ -264,12 +265,12 @@
       });
       h += '</tbody></table></div>';
     }
-    h += '<div style="margin-top:10px"><label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><input type="checkbox" data-done="c6"' + (e.done.c6 ? ' checked' : '') + '>已检查持仓</label></div></div>';
+    h += '<div style="margin-top:10px"><label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><input type="checkbox" data-path="evening.noPosition"' + (e.noPosition ? ' checked' : '') + '>今日空仓，无需检查</label></div></div>';
 
     /* 当日产出 */
-    const doneCount = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'].filter(function (k) { return e.done[k]; }).length;
+    const dn = TL.eveningDone(e);
     h += '<div class="note"><b>当日产出：</b>一张纸 —— ' + e.watch.length + ' 个品种各自的条件、止损、仓位。' +
-      '（完成 ' + doneCount + '/6）</div>';
+      '（完成 ' + Object.keys(dn).filter(function (k) { return dn[k]; }).length + '/6，自动判定）</div>';
 
     return h;
   }
@@ -279,38 +280,44 @@
     const day = TL.ensureDay(TL.UI.date);
     const e = day.evening;
     const it = day.intraday;
-    const times = ['10:00', '13:30', '14:15'];
     const st = TL.DB.settings;
+    const stateOpts = [
+      { v: '', t: '— 未记录 —' },
+      { v: 'exec', t: '有信号 · 按计划执行了' },
+      { v: 'skip', t: '有信号 · 没做' },
+      { v: 'none', t: '无信号 · 没动' },
+      { v: 'viol', t: '违规操作' }
+    ];
+    const tagOf = {
+      exec: '<span class="tag ok">已执行</span>',
+      skip: '<span class="tag warn">漏做</span>',
+      none: '<span class="tag">未动</span>',
+      viol: '<span class="tag no">违规</span>'
+    };
 
     let h = timeNote('intraday') + '<div class="note"><b>盘中铁律：</b>信号出现 → 按昨晚写好的止损和仓位执行，不临时改；信号没出现 → 不动；日报和你的系统冲突 → 以你的系统为准，或不做。' +
-      '<br>每天只开图表三次，每次 5 分钟，' + st.noNewAfter + ' 后不开新仓。</div>';
+      '<br>看盘还是三次（10:00 / 13:30 / 14:15），这里只记每个品种<b>今天的最终结果</b>，' + st.noNewAfter + ' 后不开新仓。</div>';
 
     if (!e.watch.length) {
       h += '<div class="card"><div class="empty">观察清单是空的。先去「当晚清单」筛出 2–3 个品种，再回来打卡。</div></div>';
     } else {
-      h += '<div class="check-grid">';
-      times.forEach(function (tm) {
-        const ck = it.checks[tm] || (it.checks[tm] = {});
-        h += '<div class="check-block"><h4><span class="time">' + tm + '</span>' +
-          (tm === '14:15' ? '<span style="font-size:11.5px;color:var(--muted);font-weight:400">收盘前最后一次</span>' : '') +
-          '</h4>';
-        e.watch.forEach(function (sym) {
-          const cur = (ck[sym] && ck[sym].state) || '';
-          h += '<div class="check-row"><div class="sym">' + H(TL.symbolLabel(sym)) +
-            (cur === 'exec' ? '<span class="tag ok">已执行</span>' : '') +
-            (cur === 'none' ? '<span class="tag">未动</span>' : '') +
-            (cur === 'skip' ? '<span class="tag warn">漏做</span>' : '') +
-            (cur === 'viol' ? '<span class="tag no">违规</span>' : '') +
-            '</div><div class="state-btns">' +
-            '<button data-act="check" data-time="' + tm + '" data-sym="' + H(sym) + '" data-state="exec" class="' + (cur === 'exec' ? 'on' : '') + '">有信号·执行</button>' +
-            '<button data-act="check" data-time="' + tm + '" data-sym="' + H(sym) + '" data-state="skip" class="' + (cur === 'skip' ? 'on warn' : '') + '">有信号·没做</button>' +
-            '<button data-act="check" data-time="' + tm + '" data-sym="' + H(sym) + '" data-state="none" class="' + (cur === 'none' ? 'on' : '') + '">无信号·不动</button>' +
-            '<button data-act="check" data-time="' + tm + '" data-sym="' + H(sym) + '" data-state="viol" class="' + (cur === 'viol' ? 'on bad' : '') + '">违规操作</button>' +
-            '</div></div>';
-        });
-        h += '</div>';
+      h += '<div class="card"><div class="card-hd"><h3>今天的执行结果</h3>' +
+        '<span class="tip">一个品种一行 · 看盘仍按 10:00 / 13:30 / 14:15 三次</span></div>' +
+        '<div class="tbl-wrap"><table class="mob"><thead><tr>' +
+        '<th style="width:220px">品种</th><th style="width:240px">今天最终状态</th><th>备注</th></tr></thead><tbody>';
+      e.watch.forEach(function (sym) {
+        const rec = it.checks[sym] || {};
+        const cur = rec.state || '';
+        h += '<tr>' +
+          '<td data-label="品种">' + H(TL.symbolLabel(sym)) + ' ' + (tagOf[cur] || '') + '</td>' +
+          '<td data-label="今天最终状态"><select data-act="check-once" data-sym="' + H(sym) + '">' +
+          stateOpts.map(function (o) {
+            return '<option value="' + H(o.v) + '"' + (cur === o.v ? ' selected' : '') + '>' + H(o.t) + '</option>';
+          }).join('') + '</select></td>' +
+          '<td data-label="备注"><input data-map="intraday.checks" data-key="' + H(sym) + '" data-field="note" value="' + H(rec.note) + '" placeholder="如：10:00 出信号，进 2 手"></td>' +
+          '</tr>';
       });
-      h += '</div>';
+      h += '</tbody></table></div></div>';
     }
 
     /* 违规登记 */
@@ -321,12 +328,13 @@
       ['late', st.noNewAfter + ' 后开新仓'],
       ['other', '其他违规']
     ];
-    h += '<div class="card" style="margin-top:12px"><div class="card-hd"><h3>违规登记</h3><span class="tip">这里勾的每一条，周日会自动汇总进纪律检查</span></div>' +
+    h += '<div class="card"><div class="card-hd"><h3>违规登记</h3>' +
+      '<span class="tip">勾上的每一条，周日会自动汇总进纪律检查</span></div>' +
       '<div class="chips">' + vios.map(function (v) {
         const on = it.violations[v[0]];
         return '<span class="chip ' + (on ? 'on' : '') + '" data-act="toggle-viol" data-key="' + v[0] + '">' + H(v[1]) + '</span>';
       }).join('') + '</div>' +
-      '<div style="margin-top:10px">' + ta('intraday.note', it.note, '今天盘中的情况，一句话：如「10:00 螺纹出信号，按计划进 2 手」', 2) + '</div></div>';
+      '<div style="margin-top:10px">' + ta('intraday.note', it.note, '今天盘中的情况，一句话：如「螺纹出信号，按计划进 2 手」', 2) + '</div></div>';
 
     return h;
   }
@@ -337,47 +345,77 @@
     const r = day.review;
     const e = day.evening;
 
-    let h = timeNote('review') + '<div class="note"><b>复盘只做三件事：</b>对答案（老师说的 vs 实际走的）、看自己（信号抓没抓到）、记一笔（板块轮动表新增一行）。</div>';
+    /* 由旧的两个字段推导合并后的单选项，保证老数据不丢 */
+    const waitVal = (function () {
+      if (r.waitAppeared === '没提') return 'na';
+      if (r.waitAppeared === '没出') return 'no';
+      if (r.waitAppeared === '出了') return r.waitCaught === '抓到' ? 'hit' : (r.waitCaught ? 'miss' : '');
+      return '';
+    })();
+    const outVal = (function () {
+      if (!r.align || !r.result) return '';
+      if (r.align === '老师未提') return 'na';
+      const a = r.align === '一致' ? 'agree' : (r.align === '不一致' ? 'dis' : '');
+      const b = r.result === '盈利' ? 'win' : (r.result === '亏损' ? 'loss' : 'even');
+      return a ? a + '_' + b : '';
+    })();
 
-    h += '<div class="card"><div class="card-hd"><h3><span class="idx">1</span>对照老师昨日判断</h3><span class="tip">昨日最强品种：' + H(e.theme.strongest || '未记录') + '</span></div>' +
+    let h = timeNote('review') + '<div class="note"><b>复盘只记三件事：</b>老师说得准不准、信号我抓没抓到、今天赚还是亏。</div>';
+
+    /* 1 老师判断 */
+    h += '<div class="card"><div class="card-hd"><h3><span class="idx">1</span>老师昨日最强品种（' + H(e.theme.strongest || '未记录') + '）今天怎么样</h3></div>' +
       '<div class="grid c2">' +
-      '<div class="field"><label>今日走势</label>' + seg('review.strongestRun', [{ v: '延续', t: '延续强势' }, { v: '转弱', t: '转弱' }, { v: '震荡', t: '震荡无方向' }], r.strongestRun) + '</div>' +
+      '<div class="field"><label>今日走势</label>' + seg('review.strongestRun', [{ v: '延续', t: '延续强势' }, { v: '转弱', t: '转弱' }, { v: '震荡', t: '震荡' }], r.strongestRun) + '</div>' +
       '<div class="field"><label>备注</label>' + inp('review.strongestRunNote', r.strongestRunNote, '如「冲高 2% 后回落收平」') + '</div>' +
       '</div></div>';
 
-    h += '<div class="card"><div class="card-hd"><h3><span class="idx">2</span>对照「等信号」品种</h3><span class="tip">老师说等三线五线的品种，今天出信号了吗</span></div>' +
-      '<div class="grid c3">' +
-      '<div class="field"><label>是否出信号</label>' + seg('review.waitAppeared', [{ v: '出了', t: '出了' }, { v: '没出', t: '没出' }, { v: '没提', t: '老师没提' }], r.waitAppeared) + '</div>' +
-      '<div class="field"><label>我抓到了吗</label>' + seg('review.waitCaught', [{ v: '抓到', t: '抓到' }, { v: '没盯', t: '没盯盘' }, { v: '犹豫', t: '犹豫没进' }, { v: '不信', t: '不信没做' }], r.waitCaught) + '</div>' +
-      '<div class="field"><label>备注</label>' + inp('review.waitReason', r.waitReason, '没抓到就写清楚为什么') + '</div>' +
-      '</div></div>';
-
-    h += '<div class="card"><div class="card-hd"><h3><span class="idx">3</span>验证「不要做」的品种</h3><span class="tip">远离均线不要追 —— 今天是不是真的冲高回落了</span></div>' +
+    /* 2 我的执行 */
+    h += '<div class="card"><div class="card-hd"><h3><span class="idx">2</span>信号出了吗？我抓到了吗</h3>' +
+      '<span class="tip">老师说「等三线五线」的那些品种</span></div>' +
       '<div class="grid c2">' +
-      '<div class="field"><label>结果</label>' + seg('review.noChaseFell', [{ v: '回落', t: '确实冲高回落' }, { v: '继续涨', t: '继续走强' }, { v: '没发生', t: '今天没这情况' }], r.noChaseFell) + '</div>' +
-      '<div class="field"><label>备注</label>' + inp('review.noChaseNote', r.noChaseNote, '验证「不追远离均线」这条规则') + '</div>' +
+      '<div class="field"><label>执行结果</label>' + seg('review.wait', [
+        { v: 'hit', t: '出了 · 抓到' },
+        { v: 'miss', t: '出了 · 没抓到' },
+        { v: 'no', t: '没出信号' },
+        { v: 'na', t: '老师没提' }
+      ], waitVal) + '</div>' +
+      '<div class="field"><label>没抓到就写原因</label>' + inp('review.waitReason', r.waitReason, '如「犹豫，怕是假突破」') + '</div>' +
       '</div></div>';
 
-    h += '<div class="card"><div class="card-hd"><h3><span class="idx">4</span>记录自己信号的结果</h3><span class="tip">长期统计：一致时谁胜率高，不一致时谁胜率高</span></div>' +
-      '<div class="grid c4">' +
-      '<div class="field"><label>与老师判断</label>' + seg('review.align', [{ v: '一致', t: '一致' }, { v: '不一致', t: '不一致' }, { v: '老师未提', t: '老师未提' }], r.align) + '</div>' +
-      '<div class="field"><label>结果</label>' + seg('review.result', [{ v: '盈利', t: '盈利' }, { v: '亏损', t: '亏损' }, { v: '持平', t: '持平' }], r.result) + '</div>' +
+    /* 3 我的信号结果 */
+    h += '<div class="card"><div class="card-hd"><h3><span class="idx">3</span>我的信号 vs 老师判断，今天结果如何</h3>' +
+      '<span class="tip">长期统计谁胜率高，就按谁的来</span></div>' +
+      '<div class="grid c2">' +
+      '<div class="field"><label>组合结果</label>' + seg('review.outcome', [
+        { v: 'agree_win', t: '一致 · 盈利' },
+        { v: 'agree_loss', t: '一致 · 亏损' },
+        { v: 'dis_win', t: '不一致 · 盈利' },
+        { v: 'dis_loss', t: '不一致 · 亏损' },
+        { v: 'na', t: '没做 / 老师没提' }
+      ], outVal) + '</div>' +
       '<div class="field"><label>说明</label>' + inp('review.resultNote', r.resultNote, '如「螺纹多单 +2800」') + '</div>' +
-      '<div class="field"><label>是否已记成交</label>' +
-      '<div style="display:flex;align-items:center;height:32px"><button class="btn sm" data-act="goto-trades">去记一笔成交 →</button></div></div>' +
       '</div>' +
-      '<div class="rule">精确的胜率、盈亏比由「成交记录」的盈亏字段自动算，这里只记方向判断。</div></div>';
+      '<div class="rule">精确的胜率、盈亏比由「成交记录」里的盈亏自动算，这里只记判断方向。' +
+      '<button class="btn sm ghost" data-act="goto-trades" style="margin-left:6px">去记一笔成交</button></div></div>';
 
-    h += '<div class="card"><div class="card-hd"><h3><span class="idx">5</span>更新板块轮动表</h3><span class="tip">月底回看，理解资金怎么在板块间流动</span></div>' +
+    /* 补充项：默认收起 */
+    h += '<details class="card fold"><summary>补充：验证「远离均线不要追」这条规则</summary>' +
+      '<div class="grid c2">' +
+      '<div class="field"><label>今天是不是真的冲高回落了</label>' + seg('review.noChaseFell', [{ v: '回落', t: '确实冲高回落' }, { v: '继续涨', t: '继续走强' }, { v: '没发生', t: '今天没这情况' }], r.noChaseFell) + '</div>' +
+      '<div class="field"><label>备注</label>' + inp('review.noChaseNote', r.noChaseNote, '验证这条规则') + '</div>' +
+      '</div></details>';
+
+    /* 4 板块轮动 */
+    h += '<div class="card"><div class="card-hd"><h3><span class="idx">4</span>板块轮动（记一行）</h3>' +
+      '<span class="tip">月底回看，理解资金怎么在板块间流动</span></div>' +
       '<div class="grid c4">' +
       '<div class="field"><label>主线板块</label>' + inp('review.rotSector', r.rotSector || e.theme.mainSector, '如 黑色系') + '</div>' +
-      '<div class="field"><label>最强品种</label>' + inp('review.rotStrong', r.rotStrong || e.theme.strongest, '') + '</div>' +
-      '<div class="field"><label>最弱品种</label>' + inp('review.rotWeak', r.rotWeak || e.theme.weakest, '') + '</div>' +
+      '<div class="field"><label>最强</label>' + inp('review.rotStrong', r.rotStrong || e.theme.strongest, '') + '</div>' +
+      '<div class="field"><label>最弱</label>' + inp('review.rotWeak', r.rotWeak || e.theme.weakest, '') + '</div>' +
       '<div class="field"><label>老师核心提醒</label>' + inp('review.rotNote', r.rotNote, '一句话') + '</div>' +
       '</div>' +
       '<div class="field" style="margin-top:10px"><label>复盘笔记（1–2 条）</label>' + ta('review.notes', r.notes, '如「1. 强势品种不追；2. 玻璃破位但没量，暂不做」', 3) + '</div></div>';
 
-    h += '<div class="note"><b>当日产出：</b>板块轮动表新增 1 行 + 1–2 条复盘笔记。</div>';
     return h;
   }
 
@@ -457,7 +495,7 @@
   /* ============================================================
      板块轮动
      ============================================================ */
-  TL.renderRotation = function () {
+  function rotationSection() {
     const rows = [];
     Object.keys(TL.DB.days).sort().reverse().forEach(function (date) {
       const d = TL.DB.days[date];
@@ -472,7 +510,7 @@
     });
 
     let h = '<div class="card"><div class="card-hd"><h3>板块轮动表</h3>' +
-      '<span class="tip">数据来自每天「盘后复盘 · 第 5 项」，按日期倒序 · 共 ' + rows.length + ' 行</span>' +
+      '<span class="tip">数据来自每天「盘后复盘 · 板块轮动」，按日期倒序 · 共 ' + rows.length + ' 行</span>' +
       '<span class="right"><button class="btn sm" data-act="export-rotation">导出 CSV</button></span></div>';
 
     if (!rows.length) {
@@ -496,8 +534,8 @@
       h += '</tbody></table></div>';
     }
     h += '</div>';
-    document.getElementById('rotationBody').innerHTML = h;
-  };
+    return h;
+  }
 
   /* ============================================================
      统计
@@ -507,7 +545,7 @@
     const all = TL.allTrades();
     const s = TL.computeStats(all);
 
-    let h = '<div class="kpis">' +
+    let h = rotationSection() + '<div class="kpis">' +
       kpi('总笔数', s.count, '笔') +
       kpi('胜率', s.count ? s.winRate.toFixed(0) : '—', '%') +
       kpi('盈亏比', s.count ? TL.formatRatio(s.plRatio) : '—', '') +

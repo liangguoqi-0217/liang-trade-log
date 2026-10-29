@@ -240,10 +240,11 @@
         watch: [],
         orders: [],
         positions: [],
+        noPosition: false,
         done: {}
       },
       intraday: {
-        checks: { '10:00': {}, '13:30': {}, '14:15': {} },
+        checks: {},          /* 新结构：{ 品种: {state, note} }，旧的时间键由 migrateChecks 归并 */
         violations: {},
         note: ''
       },
@@ -289,7 +290,7 @@
     const base = TL.defaultDB();
     if (!obj || typeof obj !== 'object') return base;
     obj.version = TL.VERSION;
-    obj.settings = Object.assign({}, base.settings, obj.settings || {});
+    if (obj.settings) obj.settings = Object.assign({}, base.settings, obj.settings);
     if (obj.settings.lockCode && !obj.settings.lockCodeHash) {
       obj.settings.lockCodeHash = TL.hashLock(obj.settings.lockCode);
     }
@@ -309,12 +310,49 @@
       d.evening.positions = d.evening.positions || [];
       d.evening.done = d.evening.done || {};
       d.intraday = Object.assign(def.intraday, d.intraday || {});
-      d.intraday.checks = Object.assign({ '10:00': {}, '13:30': {}, '14:15': {} }, d.intraday.checks || {});
+      d.intraday.checks = TL.migrateChecks(d.intraday.checks);
       d.intraday.violations = d.intraday.violations || {};
       d.review = Object.assign(def.review, d.review || {});
       d.trades = d.trades || [];
     }
     return obj;
+  };
+
+  /* 盘中打卡结构迁移：旧版按「10:00/13:30/14:15」三个时段分别存，
+     新版合并为「每个品种一条最终状态」。旧数据按严重程度取最高的那条。 */
+  TL.migrateChecks = function (checks) {
+    const c = checks || {};
+    const out = {};
+    const rank = { viol: 4, exec: 3, skip: 2, none: 1, '': 0 };
+    Object.keys(c).forEach(function (k) {
+      const v = c[k] || {};
+      if (/^\d{2}:\d{2}$/.test(k)) {
+        /* 旧结构：k 是时间，v 是 {品种: {state, note}} */
+        Object.keys(v).forEach(function (sym) {
+          const s = v[sym] || {};
+          const cur = out[sym] || { state: '', note: '' };
+          if ((rank[s.state] || 0) > (rank[cur.state] || 0)) cur.state = s.state || '';
+          if (s.note) cur.note = cur.note ? cur.note + '；' + s.note : s.note;
+          out[sym] = cur;
+        });
+      } else {
+        out[k] = v;
+      }
+    });
+    return out;
+  };
+
+  /* 当晚清单六项的完成度：按内容自动判定，不用手动打勾 */
+  TL.eveningDone = function (e) {
+    const th = e.theme || {};
+    return {
+      c1: !!e.indexTrend,
+      c2: !!(th.mainSector || th.strongest || th.weakest || th.turning),
+      c3: (e.candidates || []).length > 0,
+      c4: (e.watch || []).length > 0,
+      c5: (e.orders || []).length > 0,
+      c6: (e.positions || []).length > 0 || !!e.noPosition
+    };
   };
 
   /* 判断某一天是否完全为空（用于自动清理，避免统计天数虚高） */

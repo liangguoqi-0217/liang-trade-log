@@ -90,6 +90,17 @@
 
     const val = readValue(el);
 
+    if (el.dataset.map) {
+      const day0 = TL.ensureDay(TL.UI.date);
+      const map = el.dataset.map.split('.').reduce(function (o, k) { return o && o[k]; }, day0);
+      if (!map) return;
+      const key = el.dataset.key;
+      if (!map[key] || typeof map[key] !== 'object') map[key] = {};
+      map[key][el.dataset.field] = val;
+      scheduleSave();
+      return;
+    }
+
     if (el.dataset.arr) {
       const day = TL.ensureDay(TL.UI.date);
       const arrPath = el.dataset.arr;
@@ -128,12 +139,24 @@
 
   document.addEventListener('input', function (ev) {
     const el = ev.target;
-    if (el.matches('[data-path],[data-arr],[data-done]')) onField(el);
+    if (el.matches('[data-path],[data-arr],[data-done],[data-map]')) onField(el);
   });
 
   document.addEventListener('change', function (ev) {
     const el = ev.target;
-    if (el.matches('[data-path],[data-arr],[data-done]')) {
+
+    /* 盘中：一个品种一次最终状态 */
+    if (el.dataset && el.dataset.act === 'check-once') {
+      const d0 = TL.ensureDay(TL.UI.date);
+      const sym = el.dataset.sym;
+      if (!d0.intraday.checks[sym]) d0.intraday.checks[sym] = {};
+      d0.intraday.checks[sym].state = el.value || '';
+      TL.save(true);
+      TL.renderToday();
+      return;
+    }
+
+    if (el.matches('[data-path],[data-arr],[data-done],[data-map]')) {
       onField(el);
       /* 设置页改动后刷新同步状态 */
       if (el.dataset.path && el.dataset.path.indexOf('settings.') === 0) {
@@ -166,7 +189,26 @@
     if (segBtn) {
       const seg = segBtn.parentElement;
       const path = seg.dataset.seg;
-      setPath(path, segBtn.dataset.val);
+      const val = segBtn.dataset.val;
+      /* 复盘的合并选项：写回拆分的两个旧字段，保证统计口径不变 */
+      if (path === 'review.wait' || path === 'review.outcome') {
+        const d0 = TL.ensureDay(TL.UI.date);
+        if (path === 'review.wait') {
+          if (val === 'na') { d0.review.waitAppeared = '没提'; d0.review.waitCaught = ''; }
+          else if (val === 'no') { d0.review.waitAppeared = '没出'; d0.review.waitCaught = ''; }
+          else if (val === 'hit') { d0.review.waitAppeared = '出了'; d0.review.waitCaught = '抓到'; }
+          else if (val === 'miss') { d0.review.waitAppeared = '出了'; d0.review.waitCaught = '没抓到'; }
+        } else {
+          if (val === 'na') { d0.review.align = '老师未提'; d0.review.result = ''; }
+          else {
+            const ps = String(val).split('_');
+            d0.review.align = ps[0] === 'agree' ? '一致' : '不一致';
+            d0.review.result = ps[1] === 'win' ? '盈利' : (ps[1] === 'loss' ? '亏损' : '持平');
+          }
+        }
+      } else {
+        setPath(path, val);
+      }
       seg.querySelectorAll('button').forEach(function (b) { b.classList.toggle('active', b === segBtn); });
       scheduleSave();
       return;
@@ -223,18 +265,6 @@
       case 'del-pos':
         day().evening.positions.splice(+d.idx, 1);
         TL.save(true); TL.renderToday(); break;
-
-      /* ---- 盘中打卡 ---- */
-      case 'check': {
-        const it = day().intraday;
-        const tm = d.time;
-        if (!it.checks[tm]) it.checks[tm] = {};
-        const cur = it.checks[tm][d.sym] || {};
-        if (cur.state === d.state) delete cur.state;
-        else cur.state = d.state;
-        it.checks[tm][d.sym] = cur;
-        TL.save(true); TL.renderToday(); break;
-      }
 
       case 'toggle-viol': {
         const v = day().intraday.violations;
@@ -385,7 +415,6 @@
     };
     document.getElementById('btnPrint').onclick = function () { TL.printToday(); };
     document.getElementById('btnQuickPush').onclick = function () { TL.push(false); };
-    document.getElementById('btnQuickPull').onclick = function () { TL.pull(false); };
   }
 
   /* ---------------- 快捷键 ---------------- */
